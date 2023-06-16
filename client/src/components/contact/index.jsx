@@ -1,6 +1,57 @@
-import React from "react";
+import React, { useReducer } from "react";
+
+
+const initialState = {
+    fname:"",
+    lname:"",
+    email:"",
+    phone:"",
+    message:""
+};
+
+const reducer = (state, action) => {
+  if (action.type === "reset") {
+      return initialState;
+  }
+
+  const result = { ...state };
+  result[action.type] = action.value;
+  return result;
+};
 
 const Contact = () => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { fname,lname, email, phone, message} = state;
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    /* fetch api */
+    const res = await fetch('/contact', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        }, 
+        body:JSON.stringify({
+            fname, lname, email, phone, message
+        })
+    });
+    const data = await res.json();
+    if(data.error){
+        window.alert(data.error);
+    }else{
+        window.alert(data.message);
+      
+    }
+    /* clear state */
+    dispatch({ type: "reset" });
+};
+
+    
+    const onChange = e => {
+      const { name, value } = e.target;
+      dispatch({ type: name, value });
+    };
     return (
         <>
     <div className="my-40 md:my-5">
@@ -10,31 +61,59 @@ const Contact = () => {
 	{/* <!-- COMPONENT CODE --> */}
 	<div className="container mx-auto my-4 px-4 lg:px-20">
 
-		<div className="w-full p-8 my-4 md:px-12 lg:w-9/12 lg:pl-20 lg:pr-40 mr-auto rounded-2xl shadow-2xl" data-aos="fade-right">
+      <form method="POST">
+      <div className="w-full p-8 my-4 md:px-12 lg:w-9/12 lg:pl-20 lg:pr-40 mr-auto rounded-2xl shadow-2xl" data-aos="fade-right">
 			<div className="flex">
 				<h1 className="font-bold uppercase text-5xl">Send us a message</h1>
 			</div>
 			<div className="grid grid-cols-1 gap-5 md:grid-cols-2 mt-5">
+
 				<input className="w-full bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-            type="text" placeholder="First Name*" />
+        type="text" 
+        placeholder="First Name*" 
+        name="fname"
+        value={fname}
+        onChange={onChange}/>
+
 				<input className="w-full bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-            type="text" placeholder="Last Name*" />
+        type="text" 
+        placeholder="Last Name*" 
+        name="lname"
+        value={lname}
+        onChange={onChange}/>
+
 				<input className="w-full bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-            type="email" placeholder="Email*" />
+        type="email" 
+        placeholder="Email*" 
+        name="email"
+        value={email}
+        onChange={onChange}/>
+
 				<input className="w-full bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-            type="number" placeholder="Phone*" />
+        type="number" 
+        placeholder="Phone*" 
+        name="phone"
+        value={phone}
+        onChange={onChange}/>
         </div>
+
 				<div className="my-4">
-					<textarea placeholder="Message*" className="w-full h-32 bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"></textarea>
+					<textarea placeholder="Message*" 
+          className="w-full h-32 bg-gray-100 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
+          name="message"
+          value={message}
+          onChange={onChange}/>
 				</div>
 				<div className="my-2 w-1/2 lg:w-1/4">
 					<button className="uppercase text-sm font-bold tracking-wide bg-blue-600 text-gray-100 p-3 rounded-lg w-full 
-                      focus:outline-none focus:shadow-outline
-                      hover:bg-blue-700">
+          focus:outline-none focus:shadow-outline
+          hover:bg-blue-700"
+          onClick={handleSubmit}>
             Send Message
           </button>
 				</div>
 			</div>
+      </form>
 
 			<div
 				className="w-full lg:-mt-96 lg:w-2/6 px-8 py-14 ml-auto bg-blue-600 rounded-2xl" data-aos="fade-left">

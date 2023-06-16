@@ -10,7 +10,7 @@ const SignIn = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
+    const [checkbox, setCheckbox] = useState(false);
 
     const navigate = useNavigate();
 
@@ -18,6 +18,8 @@ const SignIn = () => {
         return email.length > 0 && password.length > 0;
     }
     
+    //store status to a variable:
+    let status;
     const handleSubmit = async(event) => {
         event.preventDefault();
         
@@ -27,21 +29,28 @@ const SignIn = () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                email,password
+                email,password,checkbox
             })
         });
 
-
+        
         const data = await res.json();
 
         if(data.error){
-            window.alert("Invalid Credentials");
+            window.alert(data.error);
         }else{
-            dispatch({type:"STUDENT", payload: true});
-            window.alert("SignIn Successfull");
-            navigate('/');
+            window.alert(data.message);
+            if(data.status === 'student'){
+                dispatch({type:"STUDENT", payload: true});
+                navigate('/');
+            }
+            if(data.status === 'admin'){
+                dispatch({type:"ADMIN", payload: false});
+                navigate('/admin')
+            }
         }
     }
+
     return (
         <div className="my-32 md:my-0">
             <div className="flex justify-center items-center w-screen md:h-screen bg-white" data-aos="fade-down" data-aos-delay="200">
@@ -67,6 +76,11 @@ const SignIn = () => {
                 placeholder="Enter Password*" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}/>
+
+                <div className="py-3 flex">
+                <input type="checkbox" checked={checkbox} onClick={() => setCheckbox(!checkbox)}/>
+                <label className="ml-2 text-gray-500">Log as admin</label>
+                </div>
             </div>
 
 

@@ -15,6 +15,7 @@ app.use(cookieParser())
 
 //Middlewares:(Connecting with Router Files)
 app.use(require('./router/userRoute'));
+app.use(require('./router/adminRoute'));
 app.use(express.json()); 
 // Routing End:
 

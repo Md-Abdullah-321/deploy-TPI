@@ -16,34 +16,68 @@ require('../db/connection');
 
 // Add all of your userSchema:
 const Student = require('../model/user/userSchema');
+const Admin = require('../model/admin/adminSchema');
+const Message = require('../model/messages/messageSchema');
+
+
+
 
 
 //SignIn Route:
 router.post('/signin',jsonParser,async(req, res) => {
     try{
-        const {email,password} = req.body;
-        const userLogin = await Student.findOne({email: email});
+        const {email,password, checkbox} = req.body;
         
+        //if any one input is empty return error:
         if(!email || !password){
             return res.status(400).json({error: 'Please, fill the data'});
         }
-        if(userLogin){
-            const isMatch = await bcrypt.compare(password, userLogin.password);
+        console.log(checkbox);
+        //check if the user is admin or student:
+       if(!checkbox){
+            const userLogin = await Student.findOne({email: email});
+            if(userLogin){
+                const isMatch = await bcrypt.compare(password, userLogin.password);
 
-            const token = await userLogin.generateAuthToken();
+                const token = await userLogin.generateAuthToken();
 
-            res.cookie("jwtoken", token, {
-                expires: new Date(Date.now() + 25892000000),
-                httpOnly: true
-            });
-            if(!isMatch){
-                res.status(400).json({error: 'Invalid Credientials'});
+                res.cookie("jwtoken", token, {
+                    expires: new Date(Date.now() + 25892000000),
+                    httpOnly: true
+                });
+                if(!isMatch){
+                    res.status(400).json({error: 'Invalid Credientials'});
+                }else{
+                    res.json({message: 'User SignIn successfully',
+                        status:"student"});
+                }
             }else{
-                res.json({message: 'User SignIn successfully'});
+                res.status(400).json({error: 'Invalid Credientials.'});
             }
-        }else{
-            res.status(400).json({error: 'Invalid Credientials.'});
-        }
+       }else{
+            const adminLogin = await Admin.findOne({email:email});
+
+            if(adminLogin){
+                const isMatch = await bcrypt.compare(password, adminLogin.password);
+
+                const token = await adminLogin.generateAuthToken();
+                res.cookie("jwtoken", token, {
+                    expires: new Date(Date.now() + 25892000000),
+                    httpOnly: true
+                });
+
+                if(!isMatch){
+                    res.status(400).json({error: 'Invalid Credientials'});
+                }else{
+                    res.json({message: 'Admin SignIn successfully',
+                        status:"admin"});
+                }
+
+            }
+            else{
+                res.status(400).json({error: 'User not found as Admin'});
+            }
+       }
         
 
 
@@ -85,7 +119,8 @@ router.post('/signup',jsonParser, async(req, res) => {
 //Profile Route:
 router.get('/userProfile',AuthenticateStudent, async(req, res) => {
     res.send(req.rootUser);
-})
+});
+
 
 //logout Route:
 router.get('/logout',(req,res) => {
@@ -93,6 +128,31 @@ router.get('/logout',(req,res) => {
     res.status(200).send("I am from logout");
 });
 
+
+//admin logout Route:
+router.get('/admin/logout',(req,res) => {
+    res.clearCookie('jwtoken', {path: '/'})
+    res.status(200).send("I am from logout");
+});
+
+
+
+//POST Message from user:
+router.post('/contact',jsonParser, async(req, res) => {
+    const {fname, lname, email, phone, message} = req.body;
+
+    //if any field is empty return error:
+    if(!fname || !lname || !email || !phone || !message){
+        return res.json({error: "Please, filled the contact form"});
+    }
+
+    // if all okay 
+    const userMessage = new Message({fname, lname, email, phone, message});
+    
+    await userMessage.save();
+    res.status(201).json({message:"Message submitted successfully."});
+
+});
 
 module.exports = router;
 

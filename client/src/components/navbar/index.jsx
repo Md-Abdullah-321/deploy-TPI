@@ -58,7 +58,6 @@ const Navbar = () => {
     }
     //if logged in show profile;
     const RenderProfile = () =>{
-      console.log(state);
       if(state){
         return (
           <>

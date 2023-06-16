@@ -14,7 +14,7 @@ const Logout = () => {
         },
         credentials: "include"
      }).then((res) => {
-        dispatch({type: "STUDENT", payload: false});
+        dispatch({type: "STUDENT", payload: null});
         navigate('/');
      }).catch(e => console.log("logout error"));
     });
